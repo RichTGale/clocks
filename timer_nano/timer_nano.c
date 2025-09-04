@@ -116,7 +116,6 @@ void sdelchar(char* sp, char remove)
  * For reasons detailed in a comment within this function, you must
  * free() the string that this function returns.
  */
-
 char* timestamp()
 {
     time_t current_time;    /* The current time. */
@@ -161,6 +160,15 @@ char* timestamp()
 
     /* Returning the copy of the time stamp. */
     return stamp_cpy;
+}
+
+void print(FILE* fs, char* str)
+{
+    char* time_stamp;
+
+    fprintf(fs, "[ %s ] %s", (time_stamp = timestamp()), str);
+    free(time_stamp);
+    free(str);
 }
 
 timer_nano* timer_nano_init()

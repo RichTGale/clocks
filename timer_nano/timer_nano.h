@@ -1,4 +1,12 @@
-
+/**
+ * timer_nano.h
+ * 
+ * This file contains function declarations/prototypes and types for a timer 
+ * that has nanosecond accuracy.
+ * 
+ * Author: Richard Gale
+ * Version: 1.0
+ */
 
 #ifndef TIMER_NANO_H
 #define TIMER_NANO_H
@@ -6,24 +14,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> /* strerror() */
-// #include <stdbool.h>
 #include <stdarg.h>
 #include <time.h>
 #include <errno.h>
-// #include <unistd.h>
-// #include <termios.h>
 
 /**
- * This is the number of nanoseconds in a second.
+ * There is this many nanoseconds in a second.
  */
 #define NANOS_PER_SEC 1000000000
 
+/**
+ * The timer can either have elapsed or not have elapsed.
+ */
 enum timer_states 
 {
     NOT_ELAPSED,
     HAS_ELAPSED
 };
 
+/**
+ * The timer data structure.
+ */
 typedef struct timer_nano_data
 {
     struct timespec initial;
@@ -31,6 +42,11 @@ typedef struct timer_nano_data
     struct timespec elapsed;
 } timer_nano;
 
+/**
+ * This function initialises a new instance of the timer.
+ *
+ *
+ */
 timer_nano* timer_nano_init();
 
 void timer_nano_reinit(timer_nano* tn);
@@ -50,5 +66,7 @@ char* strfmt(char* sp, char *fmt, ...);
  * free() the string that this function returns.
  */
 char* timestamp();
+
+void print(FILE* fs, char* str);
 
 #endif /* TIMER_NANO_H */
