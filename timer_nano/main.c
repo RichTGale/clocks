@@ -1,7 +1,21 @@
+/**
+ * main.c
+ *
+ * This file demonstrates how the timer_nano library may be utilized.
+ * The timer_nano type is a timer that has nanosecond precision.
+ *
+ * Author(s): Richard Gale
+ * Version 1.0
+ */
+
 #include <stdlib.h>
 
 #include "timer_nano.h"
 
+/**
+ * This function demonstrates the timer_nano timer, a timer with nanosecond 
+ * precision, running for 5 seconds at 60 frames per second.
+ */
 int main()
 {
     const int FPS = 60;                                 /* The number of frames per second. */

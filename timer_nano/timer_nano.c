@@ -1,3 +1,12 @@
+/**
+ * timer_nano.h
+ * 
+ * This file contains function definitions for the timer_nano type.
+ * The timer_nano type is a timer that has nanosecond precision.
+ * 
+ * Author(s): Richard Gale
+ * Version: 1.0
+ */
 
 #include "timer_nano.h"
 
