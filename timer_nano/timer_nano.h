@@ -43,14 +43,20 @@ typedef struct timer_nano_data
 } timer_nano;
 
 /**
- * This function initialises a new instance of the timer.
- *
- *
+ * This function returns a new instance of a timer_nano.
  */
 timer_nano* timer_nano_init();
 
+/**
+ * This function resets a timer_nano.
+ */
 void timer_nano_reinit(timer_nano* tn);
 
+/**
+ * This function will return HAS_ELAPSED upon the timer_nano passed to it
+ * having been timing for longer than the wait_time parameter passed to it,
+ * otherwise it will return NOT_ELAPSED;
+ */
 enum timer_states timer_nano_alarm(timer_nano tn, long long wait_time);
 
 /**
@@ -67,6 +73,12 @@ char* strfmt(char* sp, char *fmt, ...);
  */
 char* timestamp();
 
-void print(FILE* fs, char* str);
+/**
+ * This function sends the return value of strfmt() (see above), which is
+ * passed as print()'s second actual parameter to the file stream that is
+ * passed as the first actual parameter.
+ * This function adds a timestamp to the beginning of the output.
+ */
+void print(FILE* fs, char* (strfmt));
 
 #endif /* TIMER_NANO_H */

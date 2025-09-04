@@ -111,6 +111,92 @@ void sdelchar(char* sp, char remove)
     }
 }
 
+
+/**
+ * This function returns a new instance of a timer.
+ */
+timer_nano* timer_nano_init()
+{
+    char* output;   /* Output to filestream(s). */
+
+    /* Allocating memory to a new timer. */
+    timer_nano* tn = (timer_nano*) malloc(sizeof(timer_nano));
+
+    /* Start the timer. */
+    if ((clock_gettime(CLOCK_REALTIME, &(tn->initial)) == -1))
+    {
+        /* An error occured. Printing the error. */
+	    print(stderr, strfmt(output,
+	                        "ERROR: in function timer_nano_init(): %s\n",
+                            strerror(errno))
+                );
+
+        /* Exiting the program. */
+        exit(EXIT_FAILURE);
+    }
+
+    /* Returning the timer. */
+    return tn;
+}
+
+/**
+ * This function resets a timer_nano.
+ */
+void timer_nano_reinit(timer_nano* tn)
+{
+    char* output;   /* Output to filestream(s). */
+
+    /* Resetting the timer. */
+    if ((clock_gettime(CLOCK_REALTIME, &(tn->initial)) == -1))
+    {
+        /* An error occured. Printing the error. */
+	    print(stderr, strfmt(output,
+                    "ERROR: in function timer_nano_reinit(): %s\n",
+                    strerror(errno))
+                );
+
+        /* Exiting the program. */
+        exit(EXIT_FAILURE);
+    }
+}
+
+/**
+ * This function will return HAS_ELAPSED upon the timer_nano passed to it
+ * having been timing for longer than the wait_time parameter passed to it,
+ * otherwise it will return NOT_ELAPSED;
+ */
+enum timer_states timer_nano_alarm(timer_nano tn, long long wait_time)
+{
+    char* output;   /* Output to filestream(s). */
+
+    /* Storing the current time. */
+    if ((clock_gettime(CLOCK_REALTIME, &(&tn)->current) == -1))
+    {
+        /* An error occured. Printing the error. */
+	    print(stderr, strfmt(output,
+	                        "ERROR: in function start_timer(): %s\n",
+	                        strerror(errno))
+                );
+
+        /* Exiting the program. */
+        exit(EXIT_FAILURE);
+    }
+
+    /* Calculating the amount of elapsed time and storing it. */
+    tn.elapsed.tv_sec  = tn.current.tv_sec  - tn.initial.tv_sec;
+    tn.elapsed.tv_nsec = tn.current.tv_nsec - tn.initial.tv_nsec;
+    
+    /* Determining whether the timer has ended (the alarm should sound). */
+    if ((tn.elapsed.tv_sec * NANOS_PER_SEC) + tn.elapsed.tv_nsec > wait_time)
+    {
+        /* Returning that the timer has ended (the alarm has gone off). */
+        return HAS_ELAPSED;
+    }
+
+    /* Returning that the timer has yet to end (the alarm hasn't gone off). */ 
+    return NOT_ELAPSED;
+}
+
 /**
  * This function returns a string that represent the current time.
  * For reasons detailed in a comment within this function, you must
@@ -121,15 +207,17 @@ char* timestamp()
     time_t current_time;    /* The current time. */
     char* stamp;            /* The time stamp. */
     char* stamp_cpy;        /* A Copy of the time stamp. */
+    char* output;           /* Output to filestream(s). */
 
     /* Obtaining the current time. */
     if ((current_time = time(NULL)) == ((time_t) - 1))
     {
         /* An error occured so we're printing an error message to and exiting
          * the program. */
-        fprintf(stderr, 
-                "ERROR: In function timestamp(): "
-                "Calender time is not available\n");
+        print(stderr, strfmt(output,
+                            "ERROR: In function timestamp(): "
+                            "Calender time is not available\n")
+                );
         exit(EXIT_FAILURE);
     }
 
@@ -138,9 +226,10 @@ char* timestamp()
     {
         /* An error occured converting so we're printing an error message
          * and exiting the program. */
-        fprintf(stderr, 
-                "ERROR: In function timestamp(): "
-                "Failure to convert the current time to a string.\n");
+        print(stderr, strfmt(output, 
+                            "ERROR: In function timestamp(): "
+                            "Failure to convert the current time to a string.\n")
+                );
         exit(EXIT_FAILURE);
     }
 
@@ -162,74 +251,20 @@ char* timestamp()
     return stamp_cpy;
 }
 
-void print(FILE* fs, char* str)
+/**
+ * This function sends the return value of strfmt() (see above), which is
+ * passed as print()'s second actual parameter to the file stream that is
+ * passed as the first actual parameter.
+ * This function adds a timestamp to the beginning of the output.
+ */
+void print(FILE* fs, char* (strfmt))
 {
-    char* time_stamp;
+    char* time_stamp; /* The date and time. */ 
 
-    fprintf(fs, "[ %s ] %s", (time_stamp = timestamp()), str);
+    /* Sending the text to the file stream. */
+    fprintf(fs, "[ %s ] %s", (time_stamp = timestamp()), strfmt);
+
+    /* Freeing memory. */
     free(time_stamp);
-    free(str);
-}
-
-timer_nano* timer_nano_init()
-{
-    char* tstamp;
-
-    timer_nano* tn = (timer_nano*) malloc(sizeof(timer_nano));
-
-    if ((clock_gettime(CLOCK_REALTIME, &(tn->initial)) == -1))
-    {
-	    fprintf(stderr, 
-	            "[ %s ] ERROR: in function timer_nano_init(): %s\n",
-	            (tstamp = timestamp()), strerror(errno));
-
-        free(tstamp);
-
-        exit(EXIT_FAILURE);
-    }
-
-
-    return tn;
-}
-
-void timer_nano_reinit(timer_nano* tn)
-{
-    char* tstamp;
-
-    if ((clock_gettime(CLOCK_REALTIME, &(tn->initial)) == -1))
-    {
-	    fprintf(stderr, 
-	            "[ %s ] ERROR: in function timer_nano_reinit(): %s\n",
-	            (tstamp = timestamp()), strerror(errno));
-
-        free(tstamp);
-
-        exit(EXIT_FAILURE);
-    }
-}
-
-enum timer_states timer_nano_alarm(timer_nano tn, long long wait_time)
-{
-    char* tstamp;
-
-    if ((clock_gettime(CLOCK_REALTIME, &(&tn)->current) == -1))
-    {
-	    fprintf(stderr, 
-	            "[ %s ] ERROR: in function start_timer(): %s\n",
-	            (tstamp = timestamp()), strerror(errno));
-
-        free(tstamp);
-
-        exit(EXIT_FAILURE);
-    }
-
-    tn.elapsed.tv_sec  = tn.current.tv_sec  - tn.initial.tv_sec;
-    tn.elapsed.tv_nsec = tn.current.tv_nsec - tn.initial.tv_nsec;
-    
-    if ((tn.elapsed.tv_sec * NANOS_PER_SEC) + tn.elapsed.tv_nsec < wait_time)
-    {
-        return NOT_ELAPSED;
-    }
-
-    return HAS_ELAPSED;
+    free(strfmt);
 }
