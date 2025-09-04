@@ -30,7 +30,7 @@ size_t vbytesfmt(va_list lp, char* fmt)
  * string based on the argument list, then concatenates the argument list into 
  * the supplied format and stores it in the supplied string pointer.
  */
-void strfmt(char** sp, char *fmt, ...)
+char* strfmt(char* sp, char *fmt, ...)
 {
     va_list lp;     /* Pointer to the list of arguments. */
     size_t bytes;   /* The number of bytes the string needs. */
@@ -42,20 +42,22 @@ void strfmt(char** sp, char *fmt, ...)
     bytes = vbytesfmt(lp, fmt);
 
     /* Allocating memory to the string. */
-    *sp = (char*) malloc(bytes);
+    sp = (char*) malloc(bytes);
 
     /* Creating the string. */
-    vsprintf(*sp, fmt, lp);
+    vsprintf(sp, fmt, lp);
 
     /* Assuring a clean finish to the argument list. */
     va_end(lp);
+
+    return sp;
 }
 
 /**
  * This function removes the char element from the string provided to it which
  * is at the element number/index provided to it.
  */
-void sdelelem(char** sp, unsigned elem)
+char* sdelelem(char* sp, unsigned elem)
 {
     char* to_elem;      /* Chars from start of string to element to delete. */
     char* from_elem;    /* Chars from element to delete to end of string. */
@@ -63,42 +65,44 @@ void sdelelem(char** sp, unsigned elem)
 
     /* Allocating memory. */
     to_elem     = (char*) malloc(sizeof(char) * (elem + 1));
-    from_elem   = (char*) malloc(sizeof(char) * (strlen(*sp) - elem));
+    from_elem   = (char*) malloc(sizeof(char) * (strlen(sp) - elem));
 
     /* Storing the two sections of the string. */
-    for (c = 0; c < strlen(*sp); c++)
+    for (c = 0; c < strlen(sp); c++)
     {
         if (c < elem)
-            to_elem[c] = (*sp)[c];
+            to_elem[c] = sp[c];
         if (c > elem)
-            from_elem[c] = (*sp)[c];
+            from_elem[c] = sp[c];
     }
     to_elem[elem] = '\0';
-    from_elem[strlen(*sp) - elem - 1] = '\0';
+    from_elem[strlen(sp) - elem - 1] = '\0';
 
     /* Recreating the string. */
-    free(*sp);
-    strfmt(sp, "%s%s", to_elem, from_elem);
+    free(sp);
+    sp = strfmt(sp, "%s%s", to_elem, from_elem);
 
     /* Cleaning up. */
     free(to_elem);
     free(from_elem);
+
+    return sp;
 }
 
 /**
  * This function removes all cases of the provided char from the string at the
  * provided pointer.
  */
-void sdelchar(char** sp, char remove)
+void sdelchar(char* sp, char remove)
 {
     unsigned c;     /* Index of current char in the string. */
 
     /* Overwriting the unwanted characters. */
-	for (c = 0; c < strlen(*sp); c++)
+	for (c = 0; c < strlen(sp); c++)
 	{
-        if ((*sp)[c] == remove)
+        if (sp[c] == remove)
         {
-            sdelelem(sp, c);
+            sp = sdelelem(sp, c);
 
             /* Decrementing the index so we will check the replacement 
              * character. */
@@ -150,10 +154,10 @@ char* timestamp()
      * If this copy is not freed by the calling function, it will create a 
      * memory leak.
      */
-    strfmt(&stamp_cpy, "%s", stamp);
+    stamp_cpy = strfmt(stamp_cpy, "%s", stamp);
 
     /* Removing the newline character that was added by ctime(). */
-    sdelchar(&stamp_cpy, '\n');
+    sdelchar(stamp_cpy, '\n');
 
     /* Returning the copy of the time stamp. */
     return stamp_cpy;
