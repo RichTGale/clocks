@@ -9,8 +9,8 @@
  * Version: 1.0
  */
 
-#ifndef TIMER_NANO_H
-#define TIMER_NANO_H
+#ifndef TIMER_SEC_H
+#define TIMER_SEC_H
 
 #include <stdio.h>
 #include <stdlib.h>
