@@ -48,20 +48,15 @@ timer_sec* timer_sec_init(log* l);
 /**
  * This function resets a timer_sec.
  */
-void timer_sec_reinit(timer_sec* tn, log* l);
+void timer_sec_reinit(timer_sec* ts, log* l);
 
 /**
  * This function will return HAS_ELAPSED upon the timer_sec passed to it
  * having been timing for longer than the wait_time parameter passed to it,
  * otherwise it will return NOT_ELAPSED;
  */
-enum timer_states timer_sec_alarm(timer_sec tn, long long wait_time, log* l);
+enum timer_states timer_sec_alarm(timer_sec ts, long long wait_time, log* l);
 
-/**
- * This function dynamically allocates only the needed amount of memory to a
- * string based on the argument list, then concatenates the argument list into 
- * the supplied format and stores it in the supplied string pointer.
- */
-char* strfmt(char* sp, char *fmt, ...);
+void timer_sec_term(timer_sec* ts);
 
 #endif /* TIMER_SEC_H */

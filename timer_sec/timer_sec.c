@@ -117,9 +117,9 @@ enum timer_states timer_sec_alarm(timer_sec ts, long long wait_time, log* l)
     }
 
     /* Calculating the amount of elapsed time and storing it. */
-    ts.elapsed  = ts.current  - ts.initial;
+    ts.elapsed = ts.current - ts.initial;
     /* Determining whether the timer has ended (the alarm should sound). */
-    if (ts.elapsed > wait_time)
+    if (ts.elapsed >= wait_time)
     {
         /* Returning that the timer has ended (the alarm has gone off). */
         return HAS_ELAPSED;
@@ -127,4 +127,9 @@ enum timer_states timer_sec_alarm(timer_sec ts, long long wait_time, log* l)
 
     /* Returning that the timer has yet to end (the alarm hasn't gone off). */ 
     return NOT_ELAPSED;
+}
+
+void timer_sec_term(timer_sec* ts)
+{
+    free(ts);
 }
