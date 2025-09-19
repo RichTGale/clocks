@@ -1,0 +1,3 @@
+[submodule "mycutils"]
+	path = mycutils
+	url = https://github.com/RichTGale/mycutils.git
