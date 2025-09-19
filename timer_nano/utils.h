@@ -1,87 +1,54 @@
-/**
- * mycutils.h
- *
- * This file containsi public data-structures and function prototype declarations 
- * for various utility funtions and types, as well as enumerations relating
- * to them.
- *
- * Version: 1.0.2
- * Author: Richard Gale
- */
 
 #ifndef MYCUTILS_H
 #define MYCUTILS_H
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h> // strerror()
 #include <stdbool.h>
 #include <stdarg.h>
 #include <time.h>
 #include <stdint.h>
 #include <errno.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <termios.h>
 
 /**
- * This is the number of nanoseconds in a second.
+ * There is this many nanoseconds in a second.
  */
 #define NANOS_PER_SEC 1000000000
 
+
 /********************************* Types *************************************/
+
+/**
+ * This type is to be used in conjuction with log_init() and out().
+ * It is made with the intention of having a dedicated filestream for logging
+ * program information. I might change it to be more generiic at a later date.
+ */
+typedef struct log_data {
+    FILE* fs;
+    void (*out)(FILE* fs, char* fmt, ...);  /* Function pointer: fsout() */
+} log;
+
 
 typedef struct {
     int x;
     int y;
-} vec2d;
+} cart2d;
 
-/******************************** Maths **************************************/
+/******************************** in / out ***********************************/
+
 
 /**
- * This function maps value x to a value within a desired range.
+ * This function returns a pointer to a filestream. It is streaming to a file
+ * who's name is defined by the parameter passed this function.
+ * It is made with the intention of having a dedicated filestream for logging
+ * program information.
  */
-double map(double x, double in_min,  double in_max, 
-                     double out_min, double out_max);
+log* log_init(char* fname);
 
-
-/********************************* Time **************************************/
-
-/**
- * This function returns true if a number of nano-seconds equal to or greater
- * than wait_time has elapsed since start.
- */
-bool check_timer(struct timespec ts_start, uint64_t wait_time);
-
-/**
- * This function obtains the current time, storing it in the timespec
- * provided to it.
- */
-void start_timer(struct timespec* ts);
-
-/**
- * This function returns a string that represent the current time.
- */
-char* timestamp();
-
-/******************************** In/Out *************************************/
-
-/**
- * This function prints a prompt to the user, then assigns a string that is
- * input by the user to the buffer provided to it.
- */
-void scans(char** buf, char* prompt);
-
-/**
- * This function returns a char that was input by the user. It doesn't wait
- * for the user to press enter. (Not my code)
- */
-char scanc_nowait();
-
-/**
- * Closes the provided file stream. If there is an error, it is printed on
- * stderr and the program will exit.
- */
-void closefs(FILE* fp);
+void log_term(log* m);
 
 /**
  * This function opens a file that has a name that matches fname. It opens the
@@ -93,10 +60,17 @@ void closefs(FILE* fp);
 FILE* openfs(char* fname, char* mode);
 
 /**
- * This function assigns the next char in the file stream provided to it to
- * the buffer provided to it.
+ * This function closes the file stream provided tp it. If there is an error,
+ * it is printed on stderr and the program will exit.
  */
-bool readfsc(FILE* fstreamp, char* buf);
+void closefs(FILE* fs);
+
+/**
+ * This function assigns the next char in the file stream provided to it to
+ * the buffer provided to it. It returns true on success or false if EOF is
+ * reached. It will exit the program if an error occurs.
+ */
+bool readfsc(FILE* fs, char* buf);
 
 /**
  * This function assigns the next line in the file stream provided to it to
@@ -104,22 +78,19 @@ bool readfsc(FILE* fstreamp, char* buf);
  * or false if EOF was reached. If an error occurs the program will exit.
  * Make sure to free() the buffer when you're finished with it.
  */
-bool readfsl(FILE* fstreamp, char** buf);
+bool readfsl(FILE* fs, char** buf);
 
 /**
  * This function writes the char provided to it to the file stream provided to
  * it.
  */
-void writefsc(FILE* fstreamp, char ch);
+void writefsc(FILE* fs, char ch);
 
 /**
- * This function writes the string provided to it to the file steam provided
+ * This function writes the string provided to it to the file stream provided
  * to it.
  */
-void writefss(FILE* fstreamp, char* str);
-
-
-/******************************** Strings ************************************/
+void writefss(FILE* fs, char* str);
 
 /**
  * This function returns the number of bytes a string will need to be
@@ -133,25 +104,34 @@ size_t vbytesfmt(va_list lp, char* fmt);
  * string based on the argument list, then concatenates the argument list into 
  * the supplied format and stores it in the supplied string pointer.
  */
-void strfmt(char** sp, char *fmt, ...);
+char* strfmt(char* buf, char *fmt, ...);
 
 /**
  * This function removes the char element from the string provided to it which
- * is at the element number provided to it.
+ * is at the element number/index provided to it.
  */
-void sdelelem(char** sp, unsigned elem);
+char* sdelelem(char* sp, unsigned elem);
 
 /**
  * This function removes all cases of the provided char from the string at the
  * provided pointer.
  */
-void sdelchar(char** sp, char remove);
+void sdelchar(char* sp, char remove);
 
 /**
- * This function removes the last character before the null character
- * from the string at the string pointer provided to it.
+ * This function returns a string that represent the current time.
+ * For reasons detailed in a comment within this function, you must
+ * free() the string that this function returns.
  */
-//void stringrmlast(char** s);
+char* timestamp();
+
+/**
+ * This function outputs to a filestream.
+ * It dynamically allocates the neccessary amount of memory to an internal
+ * buffer that is based on the format string and argument list
+ * parameters, then outputs the buffer to the filestream parameter.
+ */
+void fsout(FILE* fs, char *fmt, ...);
 
 /******************************* Terminal ************************************/
 
@@ -184,6 +164,8 @@ enum textmodes {
     UNDERLINE
     };
 
+void exec(char* cmd);
+
 /**
  * This function clears the terminal.
  */
@@ -210,7 +192,7 @@ void clearfb();
 /**
  * This function returns the number of rows and columns of the terminal.
  */
-vec2d get_res();
+cart2d get_res();
 
 /**
  * This function moves the terminal cursor a number of rows or columns
@@ -224,21 +206,21 @@ void move_cursor(enum directions direction, unsigned int n);
  * prints the text file in the colours and mode that are provided to
  * the function.
  */
-void print_fs_mod(char* filepath, vec2d origin, enum termcolours colour, 
+void print_fs_mod(char* filepath, cart2d origin, enum termcolours colour, 
                                                 enum textmodes mode);
 
 /**
  * This function prints the string provided to it at the position that is
  * also provided to the function.
  */
-void print_str(char* str, vec2d pos);
+void print_str(char* str, cart2d pos);
 
 /**
  * This function prints the string provided to it at the location
  * that is also provided. It prints the string in the colours and in the
  * mode provided.
  */
-void print_str_mod(char* str, vec2d origin, enum termcolours fcol,
+void print_str_mod(char* str, cart2d origin, enum termcolours fcol,
                                             enum textmodes mode);
 
 /**
@@ -262,4 +244,4 @@ void text_fcol(enum termcolours c);
  */
 void text_mode(enum textmodes m);
 
-#endif // MYCUTILS_H
+#endif
